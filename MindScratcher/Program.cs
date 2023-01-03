@@ -35,7 +35,10 @@ builder.Services.AddSwaggerGen();
 builder.Services.ConfigureByName<MongoOptions>();
 
 builder.Services.AddSingleton<CardRepository>();
+builder.Services.AddSingleton<FolderRepository>();
+
 builder.Services.AddSingleton<CardManager>();
+builder.Services.AddSingleton<FolderManager>();
 
 var app = builder.Build();
 

@@ -8,17 +8,13 @@ using MongoDB.Driver;
 
 namespace MindScratcher.Repositories;
 
-public class CardRepository
+public class CardRepository : MongoRepositoryBase
 {
     private readonly IMongoCollection<Card> _cards;
-    private readonly IMongoCollection<Folder> _folders;
 
-    public CardRepository(IOptions<MongoOptions> options)
+    public CardRepository(IOptions<MongoOptions> options) : base(options.Value)
     {
-        var mongoOptions = options.Value;
-        var db = new MongoClient(mongoOptions.ConnectionString).GetDatabase(mongoOptions.MindScratcherDbName);
-        _cards = db.GetCollection<Card>(mongoOptions.CardsCollectionName);
-        _folders = db.GetCollection<Folder>(mongoOptions.FoldersCollectionName);
+        _cards = _db.GetCollection<Card>(options.Value.CardsCollectionName);
     }
 
     public async Task<OperationResult<Card>> InsertCardAsync(Card card)
@@ -52,28 +48,5 @@ public class CardRepository
         await _cards.DeleteManyAsync(filter);
 
         return OperationResult.Ok;
-    }
-
-    public async Task<OperationResult<Folder>> CreateFolderAsync(Folder folder)
-    {
-        await _folders.InsertOneAsync(folder);
-
-        return new OperationResult<Folder>(folder);
-    }
-
-    public async Task<OperationResult> DeleteFolderAsync(string folderName)
-    {
-        var filter = Builders<Folder>.Filter.Eq(cardFolder => cardFolder.FolderName, folderName);
-        await _folders.DeleteOneAsync(filter);
-        
-        return OperationResult.Ok;
-    }
-
-    public async Task<OperationResult<List<Folder>>> GetFoldersAsync()
-    {
-        var filter = Builders<Folder>.Filter.Empty;
-        var folders = await (await _folders.FindAsync(filter)).ToListAsync();
-
-        return new OperationResult<List<Folder>>(folders);
     }
 }
